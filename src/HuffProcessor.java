@@ -64,12 +64,59 @@ public class HuffProcessor {
 		if (magic != HUFF_TREE) {
 			throw new HuffException("invalid magic number "+magic);
 		}
-		out.writeBits(BITS_PER_INT,magic);
+		HuffNode root = readTree(in);
+		HuffNode current = root;
+		//out.writeBits(BITS_PER_INT,magic);
 		while (true){
-			int val = in.readBits(BITS_PER_WORD);
-			if (val == -1) break;
-			out.writeBits(BITS_PER_WORD, val);
+			int val = in.readBits(1);
+			if (val == -1)
+			{
+				throw new HuffException("bad input, no PSEUDO_EOF");
+			}
+			else
+			{
+				if(val == 0)
+				{
+					current = current.myLeft;
+				}
+				else
+				{
+					current = current.myRight;
+				}
+				if(current.myLeft == null && current.myRight == null)
+				{
+					if(current.myValue == PSEUDO_EOF)
+					{
+						break;
+					}
+					else
+					{
+						out.writeBits(BITS_PER_WORD, current.myValue);
+						current = root;
+					}
+				}
+			}
 		}
 		out.close();
+	}
+
+	public HuffNode readTree(BitInputStream in)
+	{
+		int bit = in.readBits(1);
+		if(bit == -1)
+		{
+			throw new HuffException("Invalid InputStream");
+		}
+		if(bit == 0)
+		{
+			HuffNode left = readTree(in);
+			HuffNode right = readTree(in);
+			return new HuffNode(0,0,left, right);
+		}
+		else
+		{
+			int value = in.readBits(BITS_PER_WORD + 1);
+			return new HuffNode(value, 0, null, null);
+		}
 	}
 }

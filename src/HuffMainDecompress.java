@@ -29,6 +29,7 @@ public class HuffMainDecompress {
 			System.out.printf("%d compared to %d\n", diff, diff2);
 		}
 		catch (HuffException he) {
+			he.printStackTrace();
 			boolean result = outf.delete();
 			if (result) {
 				System.err.printf("deleted file %s\n", outf.getName());
