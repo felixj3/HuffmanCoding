@@ -41,13 +41,27 @@ public class HuffProcessor {
 	 *            Buffered bit stream writing to the output file.
 	 */
 	public void compress(BitInputStream in, BitOutputStream out){
-
+		int[] counts = readForCounts(in);
+		
 		while (true){
 			int val = in.readBits(BITS_PER_WORD);
 			if (val == -1) break;
 			out.writeBits(BITS_PER_WORD, val);
 		}
 		out.close();
+	}
+
+	public int[] readForCounts(BitInputStream in)
+	{
+		int[] out = new int[ALPH_SIZE + 1]; // ALPH_SIZE is 1 with 8 zeros, representing 256
+		// characters are from 0 - 255 index and the 256 index is for PSEUDO_EOF
+		out[PSEUDO_EOF] = 1;
+		while (true){
+			int val = in.readBits(BITS_PER_WORD);
+			if (val == -1) break;
+			out[val] = out[val] + 1;
+		}
+		return out;
 	}
 	/**
 	 * Decompresses a file. Output file must be identical bit-by-bit to the
