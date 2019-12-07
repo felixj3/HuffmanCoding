@@ -43,15 +43,51 @@ public class HuffProcessor {
 	 *            Buffered bit stream writing to the output file.
 	 */
 	public void compress(BitInputStream in, BitOutputStream out){
-		int[] counts = readForCounts(in);
-		HuffNode root = makeTreeFromCounts(counts);
-		String[] codings = makeCodingsFromTree(root);
+		int[] counts = readForCounts(in); // reads frequencies
+		HuffNode root = makeTreeFromCounts(counts); // makes huff tree based on freq as weight
+		String[] codings = makeCodingsFromTree(root); // creates the codings from huff tree
+		out.writeBits(BITS_PER_INT, HUFF_TREE); // magic number
+		writeHeader(root, out); // put encoding of huff tree in compressed file
+		in.reset(); // first used to read freq, now to encode message
+		writeCompressedBits(codings, in, out); // converts original message into same content
+		// but each character represented by a different value now
+		out.close();
+	}
+
+	public void writeCompressedBits(String[] codings, BitInputStream in, BitOutputStream out)
+	{
+		// when we normally read text it's in 8 bits
+		// for the tree it's 9 so that PSEUDO_EOF can be included
 		while (true){
 			int val = in.readBits(BITS_PER_WORD);
 			if (val == -1) break;
-			out.writeBits(BITS_PER_WORD, val);
+			String code = codings[val]; // val is the bit value converted to integer of a
+			// letter in the original file. Codings lets us know its new shortened value
+			out.writeBits(code.length(), Integer.parseInt(code, 2));
+			// since code is in base 2 but string, we know code.length is the same as parseInt
+			// radix 2
 		}
-		out.close();
+		String c = codings[PSEUDO_EOF];
+		out.writeBits(c.length(), Integer.parseInt(c, 2));
+	}
+
+	public void writeHeader(HuffNode root, BitOutputStream out)
+	{
+		// writes the code for the tree at the start of the compressed file
+		if(root != null)
+		{
+			if(root.myLeft == null && root.myRight == null)
+			{
+				out.writeBits(1, 1);
+				out.writeBits(BITS_PER_WORD + 1, root.myValue);
+			}
+			else
+			{
+				out.writeBits(1, 0);
+				writeHeader(root.myLeft, out);
+				writeHeader(root.myRight, out);
+			}
+		}
 	}
 
 	public String[] makeCodingsFromTree(HuffNode root)
