@@ -1,3 +1,5 @@
+import java.util.PriorityQueue;
+import java.util.ArrayList;
 
 /**
  * Although this class has a history of several years,
@@ -42,13 +44,57 @@ public class HuffProcessor {
 	 */
 	public void compress(BitInputStream in, BitOutputStream out){
 		int[] counts = readForCounts(in);
-		
+		HuffNode root = makeTreeFromCounts(counts);
+		String[] codings = makeCodingsFromTree(root);
 		while (true){
 			int val = in.readBits(BITS_PER_WORD);
 			if (val == -1) break;
 			out.writeBits(BITS_PER_WORD, val);
 		}
 		out.close();
+	}
+
+	public String[] makeCodingsFromTree(HuffNode root)
+	{
+		String[] codings = new String[ALPH_SIZE + 1];
+		codingsHelper(root, codings, "");
+		return codings;
+	}
+
+	public void codingsHelper(HuffNode root, String[] paths, String path)
+	{
+		if(root != null)
+		{
+			if(root.myLeft == null && root.myRight == null)
+			{
+				paths[root.myValue] = path;
+			}
+			else
+			{
+				codingsHelper(root.myLeft, paths, path + "0");
+				codingsHelper(root.myRight, paths, path + "1");
+			}
+		}
+	}
+
+	public HuffNode makeTreeFromCounts(int[] counts)
+	{
+		PriorityQueue<HuffNode> pq = new PriorityQueue<>();
+		for(int i = 0; i < counts.length; i++)
+		{
+			if(counts[i] != 0)
+			{
+				pq.add(new HuffNode(i, counts[i]));
+			}
+		}
+		while(pq.size() > 1)
+		{
+			// take two trees out and put one back in
+			HuffNode left = pq.remove();
+			HuffNode right = pq.remove();
+			pq.add(new HuffNode(-1, left.myWeight + right.myWeight, left, right));
+		}
+		return pq.remove();
 	}
 
 	public int[] readForCounts(BitInputStream in)
