@@ -54,7 +54,7 @@ public class HuffProcessor {
 		out.close();
 	}
 
-	public void writeCompressedBits(String[] codings, BitInputStream in, BitOutputStream out)
+	private void writeCompressedBits(String[] codings, BitInputStream in, BitOutputStream out)
 	{
 		// when we normally read text it's in 8 bits
 		// for the tree it's 9 so that PSEUDO_EOF can be included
@@ -71,7 +71,7 @@ public class HuffProcessor {
 		out.writeBits(c.length(), Integer.parseInt(c, 2));
 	}
 
-	public void writeHeader(HuffNode root, BitOutputStream out)
+	private void writeHeader(HuffNode root, BitOutputStream out)
 	{
 		// writes the code for the tree at the start of the compressed file
 		if(root != null)
@@ -90,14 +90,14 @@ public class HuffProcessor {
 		}
 	}
 
-	public String[] makeCodingsFromTree(HuffNode root)
+	private String[] makeCodingsFromTree(HuffNode root)
 	{
 		String[] codings = new String[ALPH_SIZE + 1];
 		codingsHelper(root, codings, "");
 		return codings;
 	}
 
-	public void codingsHelper(HuffNode root, String[] paths, String path)
+	private void codingsHelper(HuffNode root, String[] paths, String path)
 	{
 		if(root != null)
 		{
@@ -113,7 +113,7 @@ public class HuffProcessor {
 		}
 	}
 
-	public HuffNode makeTreeFromCounts(int[] counts)
+	private HuffNode makeTreeFromCounts(int[] counts)
 	{
 		PriorityQueue<HuffNode> pq = new PriorityQueue<>();
 		for(int i = 0; i < counts.length; i++)
@@ -133,7 +133,7 @@ public class HuffProcessor {
 		return pq.remove();
 	}
 
-	public int[] readForCounts(BitInputStream in)
+	private int[] readForCounts(BitInputStream in)
 	{
 		int[] out = new int[ALPH_SIZE + 1]; // ALPH_SIZE is 1 with 8 zeros, representing 256
 		// characters are from 0 - 255 index and the 256 index is for PSEUDO_EOF
@@ -196,7 +196,7 @@ public class HuffProcessor {
 		out.close();
 	}
 
-	public HuffNode readTree(BitInputStream in)
+	private HuffNode readTree(BitInputStream in)
 	{
 		int bit = in.readBits(1);
 		if(bit == -1)
