@@ -9,7 +9,7 @@ import java.util.ArrayList;
  * Changes include relying solely on a tree for header information
  * and including debug and bits read/written information
  * 
- * @author Owen Astrachan
+ * @author Felix Jiang
  */
 
 public class HuffProcessor {
@@ -26,9 +26,7 @@ public class HuffProcessor {
 	public static final int DEBUG_HIGH = 4;
 	public static final int DEBUG_LOW = 1;
 	
-	public HuffProcessor() {
-		this(0);
-	}
+	public HuffProcessor() { this(0); }
 	
 	public HuffProcessor(int debug) {
 		myDebugLevel = debug;
@@ -145,6 +143,7 @@ public class HuffProcessor {
 		}
 		return out;
 	}
+
 	/**
 	 * Decompresses a file. Output file must be identical bit-by-bit to the
 	 * original.
